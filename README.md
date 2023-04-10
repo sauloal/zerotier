@@ -74,7 +74,7 @@ docker run --rm -i -t --entrypoint /bin/bash zerotier/zerotier:$version
 
 ```bash
 
-zerotier-cli generat/var/lib/zerotier-one/identity.secret /var/lib/zerotier-one/identity.public af
+zerotier-cli generat/var/lib/zerotier-one/identity.secret /var/lib/zerotier-one/identity.public YY
 
 ```
 
@@ -87,7 +87,7 @@ docker run --rm -i -t \
 	--workdir /tmp/keys \
 	--volume ./zerotier/keys:/tmp/keys \
 	zerotier/zerotier:$version \
-	generate identity.secret identity.public af
+	generate identity.secret identity.public YY
 
 export name=`cat zerotier/keys/identity.public | cut -c1-10`
 echo $name
@@ -225,10 +225,12 @@ curl ifconfig.me
 ```
 
 `enp0s3` primary physical ETH interface
-~~`10.0.0.199` the public IP on the `enp0s3` interface~~
-`000.000.000.000` the public IP on the `enp0s3` interface (`curl ifconfig.me`)
-`192.168.194.0/24` ZT network
 
+~~`10.0.0.199` the public IP on the `enp0s3` interface~~
+
+`000.000.000.000` the public IP on the `enp0s3` interface (`curl ifconfig.me`)
+
+`192.168.194.0/24` ZT network
 
 `/etc/ufw/before.rules`
 
