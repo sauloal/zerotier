@@ -8,33 +8,33 @@
 
 ## Install
 
-<https://askubuntu.com/questions/880304/install-zerotier-on-ubuntu-with-armhf-hardware>
-
 ```bash
-#sudo sh -c 'echo "deb http://download.zerotier.com/debian/jessie jessie main #ZeroTier" > /etc/apt/sources.list.d/zerotier.list'
-#wget -O - 'https://raw.githubusercontent.com/zerotier/ZeroTierOne/master/doc/contact%40zerotier.com.gpg' | sudo apt-key add -
+sudo apt install make build-essential clang lld-14 cargo pkg-config libssl-dev
 
-sudo sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/zerotier.com.gpg] http://download.zerotier.com/debian/jessie jessie main #ZeroTier" > /etc/apt/sources.list.d/zerotier.list'
-wget -O - 'https://raw.githubusercontent.com/zerotier/ZeroTierOne/master/doc/contact%40zerotier.com.gpg' | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/zerotier.com.gpg
+mkdir -p zerotier
+cd zerotier/
+wget https://github.com/zerotier/ZeroTierOne/archive/refs/tags/1.10.6.tar.gz
+tar axvf 1.10.6.tar.gz
+rm 1.10.6.tar.gz
+cd ZeroTierOne-1.10.6/
+make
+make selftest
+./zerotier-selftest
 
-sudo apt update
-sudo apt install zerotier-one
-
-sudo systemctl enable zerotier-one
-sudo systemctl start  zerotier-one
-sudo systemctl status zerotier-one
-
-#sudo apt install net-tools
-netstat -lp --numeric-ports --numeric-hosts | grep zero
+sudo make install
 ```
 
 ## Create identity
 
 ```bash
+
 zerotier-cli generat/var/lib/zerotier-one/identity.secret /var/lib/zerotier-one/identity.public YY
+
 ```
 
 ## Run service
+
+### Local
 
 <https://docs.zerotier.com/zerotier/zerotier.conf>
 
@@ -72,6 +72,18 @@ sudo zerotier-cli set $network allowDNS=1
 #sudo sysctl -w net.ipv4.conf.all.rp_filter=2
 ```
 
+## Probe state
+
+You will want to probe the control socket:
+
+```bash
+docker exec -it zerotier bash
+
+docker exec zerotier zerotier-cli info
+docker exec zerotier zerotier-cli peers
+docker exec zerotier zerotier-cli listnetworks
+```
+
 ## Gateway
 
 <https://dev.to/yongchanghe/set-up-a-home-server-and-access-it-from-everywhere-2j2m>
@@ -93,14 +105,6 @@ sudo systemctl is-enabled netfilter-persistent.service
 
 sudo sysctl -p
 ```
-
-<https://gist.github.com/tjelen/0c070d343c9e6d3db2fbf57e6ceafa7c>
-
-<https://zerotier.atlassian.net/wiki/spaces/SD/pages/7110693/Overriding+Default+Route+Full+Tunnel+Mode>
-
-<https://sensorsiot.github.io/IOTstack/Containers/ZeroTier/>
-
-<https://github.com/zyclonite/zerotier-docker/blob/main/README-router.md>
 
 ## Open port
 
