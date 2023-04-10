@@ -66,7 +66,7 @@ export network=xxxxxxxxxxxxxxxxxxxxxx
 run bash
 
 docker run --rm -i -t --entrypoint /bin/bash zerotier/zerotier:$version
-`
+```
 
 ## Create identity
 
