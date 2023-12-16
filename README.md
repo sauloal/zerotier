@@ -34,6 +34,18 @@ netstat -lp --numeric-ports --numeric-hosts | grep zero
 zerotier-cli generat/var/lib/zerotier-one/identity.secret /var/lib/zerotier-one/identity.public YY
 ```
 
+## Install IPTables persistent
+
+```bash
+sudo apt-get install iptables-persistent netfilter-persistent
+```
+#For a Linux host to route via a ZeroTier network, you may
+(depending on distribution) need to change a setting called rp_filter:
+
+```bash
+sudo sysctl -w net.ipv4.conf.all.rp_filter=2
+```
+
 ## Run service
 
 <https://docs.zerotier.com/zerotier/zerotier.conf>
@@ -43,7 +55,10 @@ zerotier-cli generat/var/lib/zerotier-one/identity.secret /var/lib/zerotier-one/
 <https://github.com/zerotier/ZeroTierOne>
 
 ```bash
-export network=xxxxxxxxxxxxxx
+export network=`zerotier-cli listnetworks | head -2 | tail -1 | gawk '{ print $3 }'`
+
+# for multiple networks, set manually
+#export network=xxxxxxxxxxxxxx
 
 sudo mkdir -p /var/lib/zerotier-one/networks.d
 sudo touch /var/lib/zerotier-one/networks.d/$network.conf
@@ -67,9 +82,6 @@ sudo zerotier-cli peers
 sudo zerotier-cli set $network allowGlobal=1
 sudo zerotier-cli set $network allowDefault=1
 sudo zerotier-cli set $network allowDNS=1
-
-#For a Linux host to route via a ZeroTier network, you may (depending on distribution) need to change a setting called rp_filter:
-#sudo sysctl -w net.ipv4.conf.all.rp_filter=2
 ```
 
 ## Gateway
