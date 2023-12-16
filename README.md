@@ -104,4 +104,7 @@ sudo sysctl -p
 
 ## Open port
 
-`9993 UDP`
+Enable port `9993` `UDP`.
+
+`ufw allow 9993/udp`
+
