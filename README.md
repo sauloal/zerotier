@@ -43,7 +43,12 @@ sudo apt-get install iptables-persistent netfilter-persistent
 (depending on distribution) need to change a setting called rp_filter:
 
 ```bash
+sudo sysctl -w net.ipv4.ip_forward=1
 sudo sysctl -w net.ipv4.conf.all.rp_filter=2
+
+echo >> /etc/sysctl.conf
+echo net.ipv4.ip_forward=1         >> /etc/sysctl.conf
+echo net.ipv4.conf.all.rp_filter=2 >> /etc/sysctl.conf
 ```
 
 ## Run service
@@ -56,19 +61,12 @@ sudo sysctl -w net.ipv4.conf.all.rp_filter=2
 
 ```bash
 export network=`zerotier-cli listnetworks | head -2 | tail -1 | gawk '{ print $3 }'`
+echo "NETWORK NAME ${network}"
 
 # for multiple networks, set manually
 #export network=xxxxxxxxxxxxxx
 
 sudo mkdir -p /var/lib/zerotier-one/networks.d
-sudo touch /var/lib/zerotier-one/networks.d/$network.conf
-
-echo -e "allowManaged=1" | sudo tee    /var/lib/zerotier-one/networks.d/$network.local.conf
-echo -e "allowGlobal=1"  | sudo tee -a /var/lib/zerotier-one/networks.d/$network.local.conf
-echo -e "allowDefault=1" | sudo tee -a /var/lib/zerotier-one/networks.d/$network.local.conf
-echo -e "allowDNS=1"     | sudo tee -a /var/lib/zerotier-one/networks.d/$network.local.conf
-
-cat /var/lib/zerotier-one/networks.d/xxxxxxxxxxxxxx.local.conf
 
 sudo zerotier-one -d
 sudo zerotier-cli status
@@ -79,27 +77,50 @@ sudo zerotier-cli listnetworks
 sudo zerotier-cli listpeers
 sudo zerotier-cli peers
 
+sudo zerotier-cli set $network allowManaged=1
 sudo zerotier-cli set $network allowGlobal=1
 sudo zerotier-cli set $network allowDefault=1
 sudo zerotier-cli set $network allowDNS=1
+
+sudo zerotier-cli get $network allowManaged
+sudo zerotier-cli get $network allowGlobal
+sudo zerotier-cli get $network allowDefault
+sudo zerotier-cli get $network allowDNS
+```
+
+Or Manually
+
+```bash
+sudo touch /var/lib/zerotier-one/networks.d/$network.conf
+
+echo -e "allowManaged=1" | sudo tee    /var/lib/zerotier-one/networks.d/$network.local.conf
+echo -e "allowGlobal=1"  | sudo tee -a /var/lib/zerotier-one/networks.d/$network.local.conf
+echo -e "allowDefault=1" | sudo tee -a /var/lib/zerotier-one/networks.d/$network.local.conf
+echo -e "allowDNS=1"     | sudo tee -a /var/lib/zerotier-one/networks.d/$network.local.conf
+
+cat /var/lib/zerotier-one/networks.d/$network.local.conf
 ```
 
 ## Gateway
 
 <https://dev.to/yongchanghe/set-up-a-home-server-and-access-it-from-everywhere-2j2m>
 
-```
+```bash
 export inet=`sudo zerotier-cli listnetworks | tail -1 | cut -d" " -f 8`
-echo $inet
+echo "ZEROTIER INET $inet"
 
-sudo iptables -I FORWARD -i $inet -j ACCEPT
-sudo iptables -I FORWARD -o $inet -j ACCEPT
-sudo iptables -I FORWARD -i $inet -o enp0s3 -j ACCEPT
-sudo iptables -t nat -I POSTROUTING -o $inet  -j MASQUERADE
-sudo iptables -t nat -I POSTROUTING -o enp0s3 -j MASQUERADE
+export dftl=`ip r | grep default | gawk '{print $5}'`
+echo "DEFAULT  INET $dftl"
+
+sudo iptables -I FORWARD -i $inet   -j ACCEPT
+sudo iptables -I FORWARD -o $inet   -j ACCEPT
+sudo iptables -I FORWARD -i $inet   -o ${dftl} -j ACCEPT
+sudo iptables -t nat -I POSTROUTING -o ${dftl} -j MASQUERADE
+sudo iptables -t nat -I POSTROUTING -o eth0    -j MASQUERADE
 
 sudo     /sbin/iptables-save    | sudo tee /etc/iptables/rules.v4
 sudo cat /etc/iptables/rules.v4 | sudo /sbin/iptables-restore
+sudo     /sbin/iptables-save
 
 sudo systemctl is-enabled netfilter-persistent.service
 
@@ -118,5 +139,6 @@ sudo sysctl -p
 
 Enable port `9993` `UDP`.
 
-`ufw allow 9993/udp`
-
+```bash
+ufw allow 9993/udp
+```
